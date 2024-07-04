@@ -1,6 +1,8 @@
 import UIKit
 
-final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, AlertPresenterDelegate {
+final class MovieQuizViewController: UIViewController,
+                                     QuestionFactoryDelegate,
+                                     AlertPresenterDelegate {
     // MARK: - IB Outlets
     @IBOutlet private weak var imageView: UIImageView!
     @IBOutlet private weak var textLable: UILabel!
@@ -102,10 +104,12 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
             let resultModel = QuizResultViewModel(title: "Этот раунд окончен!",
                                                   text: (correctAnswers == questionAmount ?
                                                   "Поздравляем, результат: \(questionAmount) из \(questionAmount)!\n" :
-                                                  "Ваш результат: \(correctAnswers) из \(questionAmount)\n") +
-                                                  "Колличество сыграных квизов: \(statisticService.gamesCount)\n" +
-                                                  "Рекорд: \(statisticService.bestGame.correct)/\(statisticService.bestGame.total) (\(statisticService.bestGame.date.dateTimeString))\n" +
-                                                  "Средняя точность: \(String(format: "%.2f", statisticService.totalAccuracy))%",
+                                                  "Ваш результат: \(correctAnswers) из \(questionAmount)\n") + 
+                                                  """
+                                                  Колличество сыграных квизов: \(statisticService.gamesCount)
+                                                  Рекорд: \(statisticService.bestGame.correct)/\(statisticService.bestGame.total) (\(statisticService.bestGame.date.dateTimeString))
+                                                  Средняя точность: \(String(format: "%.2f", statisticService.totalAccuracy))%
+                                                  """,
                                                   buttonText: "Сыграть еще раз")
             //Передаю созданную модель в функцию show
             show(quiz: resultModel)
