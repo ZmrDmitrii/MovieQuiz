@@ -1,7 +1,8 @@
 import Foundation
 
+//изменили тип image с String на Data
 struct QuizQuestion {
-    let image: String
+    let image: Data
     let text: String
     let correctAnswer: Bool
 }
