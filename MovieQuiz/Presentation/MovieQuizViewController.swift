@@ -16,7 +16,7 @@ final class MovieQuizViewController: UIViewController,
     private var correctAnswers = 0
     private let questionAmount = 10
     
-    private var questionFactory: QuestionFactoryProtocol? /*= QuestionFactory(delegate: self, moviesLoader: MoviesLoader())*/
+    private var questionFactory: QuestionFactoryProtocol?
     private var currentQuestion: QuizQuestion?
     private var alertPresenter: AlertPresenter?
     private var statisticService: StatisticServiceProtocol = StatisticService()
@@ -51,6 +51,7 @@ final class MovieQuizViewController: UIViewController,
         let viewModel = convert(model: question)
         
         DispatchQueue.main.async { [weak self] in
+            self?.hideLoadingIndicator()
             self?.show(quiz: viewModel)
         }
     }
@@ -62,6 +63,14 @@ final class MovieQuizViewController: UIViewController,
     
     func didFailToLoadData(with error: Error) {
         showNetworkError(message: error.localizedDescription)
+    }
+    
+    func didLoadEmptyArrayOfMovies(with errorMessage: String) {
+        showAPIError(errorMessage: errorMessage)
+    }
+    
+    func didFailToLoadImage(with error: Error) {
+        showImageLoadError(message: error.localizedDescription)
     }
     
     // MARK: - AlertPresenterDelegate
@@ -127,6 +136,7 @@ final class MovieQuizViewController: UIViewController,
         } else {
             //Next Question
             currentQuestionIndex += 1
+            showLoadingIndicator()
             questionFactory?.requestNextQuestion()
         }
     }
@@ -152,19 +162,17 @@ final class MovieQuizViewController: UIViewController,
     }
     
     private func showLoadingIndicator() {
-        activityIndicator.isHidden = false
         activityIndicator.startAnimating()
     }
     
     private func hideLoadingIndicator() {
         activityIndicator.stopAnimating()
-        activityIndicator.isHidden = true
     }
     
     private func showNetworkError(message: String) {
         hideLoadingIndicator()
         let alertModel = AlertModel(title: "Ошибка соединения",
-                                    message: "Произошла ошибка соединения, попробуйте еще раз",
+                                    message: message,
                                     buttonText: "Попробовать еще раз",
                                     completion: { [weak self] in
             guard let self else { return }
@@ -172,6 +180,38 @@ final class MovieQuizViewController: UIViewController,
             self.correctAnswers = 0
             showLoadingIndicator()
             self.questionFactory?.loadData()
+        })
+        alertPresenter?.showAlert(model: alertModel)
+    }
+    
+    private func showAPIError(errorMessage: String) {
+        hideLoadingIndicator()
+        let alertModel = AlertModel(title: "Ошибка загрузки",
+                                    message:
+                                    """
+                                    Произошла ошибка загрузки данных:
+                                    \(errorMessage)
+                                    Попробуйте еще раз.
+                                    """,
+                                    buttonText: "Попробовать еще раз",
+                                    completion: { [weak self] in
+            guard let self else { return }
+            self.currentQuestionIndex = 0
+            self.correctAnswers = 0
+            showLoadingIndicator()
+            self.questionFactory?.loadData()
+        })
+        alertPresenter?.showAlert(model: alertModel)
+    }
+    
+    private func showImageLoadError(message: String) {
+        hideLoadingIndicator()
+        let alertModel = AlertModel(title: "Ошибка загрузки изображения",
+                                    message: "Неудалось загрузить изображение, попробуйте еще раз",
+                                    buttonText: "Попробовать еще раз",
+                                    completion: { [weak self] in
+            guard let self else { return }
+            self.questionFactory?.requestNextQuestion()
         })
         alertPresenter?.showAlert(model: alertModel)
     }

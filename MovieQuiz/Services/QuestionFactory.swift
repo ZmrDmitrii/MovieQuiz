@@ -26,9 +26,18 @@ extension QuestionFactory: QuestionFactoryProtocol {
                     // movies - массив фильмов
                     self.movies = mostPopularMovies.items
                     
-                    //у делегата (vc) вызываем функцию, сообщающую, что загрузка удалась
-                    self.delegate?.didLoadDataFromServer()
-                    
+                    //функционал показа ошибки, если пришел пустой массив или текст ошибки
+                    if self.movies.isEmpty || mostPopularMovies.errorMessage != "" {
+                        
+                        //загрузка удалась, но мы получили пустой массив -> вызываем метод с показом ошибки
+                        self.delegate?.didLoadEmptyArrayOfMovies(with: mostPopularMovies.errorMessage)
+                        
+                    } else {
+                        
+                        //у делегата (vc) вызываем функцию, сообщающую, что загрузка удалась
+                        self.delegate?.didLoadDataFromServer()
+                        
+                    }
                 case .failure(let error):
                     
                     //у делегата (vc) вызываем функцию, сообщающую, что загрузка провалилась и передадим ей ошибку для показа
@@ -55,19 +64,25 @@ extension QuestionFactory: QuestionFactoryProtocol {
             var imageData = Data()
             
             do {
-                //не стал менять на resizedImageUrl, по моему мнению качество изображения без изменения URL выше
                 imageData = try Data(contentsOf: movie.imageURL)
             } catch {
-                print("Failed to load image")
+                //алерт - ошибка загрузки изображения
+                DispatchQueue.main.async { [weak self] in
+                    guard let self else { return }
+                    self.delegate?.didFailToLoadImage(with: error)
+                }
+                return
             }
             
             //тут рейтинг фильма
             let rating = Float(movie.rating) ?? 0
             
             //тут текст вопроса
-            let number = (8...9).randomElement() ?? 9
-            let text = "Рейтинг этого фильма\nбольше чем \(number)?"
-            let correctAnswer = rating > Float(number)
+            let randomElement = (0...1).randomElement()
+            let moreOrLessTitle = randomElement == 0 ? "больше" : "меньше"
+            let number = (7...9).randomElement() ?? 7
+            let text = "Рейтинг этого фильма\n \(moreOrLessTitle) чем \(number)?"
+            let correctAnswer = randomElement == 0 ? rating > Float(number) : rating < Float(number)
             
             //создаем вопрос с формате QuizQuestion
             let question = QuizQuestion(image: imageData,
