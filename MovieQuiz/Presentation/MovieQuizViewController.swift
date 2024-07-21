@@ -121,7 +121,8 @@ final class MovieQuizViewController: UIViewController,
             statisticService.store(GameResult(correct: correctAnswers, total: questionAmount, date: Date()))
             
             //Создаю модель результата QuizResultViewModel
-            let resultModel = QuizResultViewModel(title: "Этот раунд окончен!",
+            let resultModel = QuizResultViewModel(id: "Result",
+                                                  title: "Этот раунд окончен!",
                                                   text: (correctAnswers == questionAmount ?
                                                   "Поздравляем, результат: \(questionAmount) из \(questionAmount)!\n" :
                                                   "Ваш результат: \(correctAnswers) из \(questionAmount)\n") + 
@@ -144,6 +145,7 @@ final class MovieQuizViewController: UIViewController,
     //Теперь функция show отвечает за создание AlertModel из QuizResultViewModel и передачу этой модели в AlertPresenter
     private func show(quiz result: QuizResultViewModel) {
         let alertModel = AlertModel(
+            id: result.id,
             title: result.title,
             message: result.text,
             buttonText: result.buttonText,
@@ -171,7 +173,8 @@ final class MovieQuizViewController: UIViewController,
     
     private func showNetworkError(message: String) {
         hideLoadingIndicator()
-        let alertModel = AlertModel(title: "Ошибка соединения",
+        let alertModel = AlertModel(id: "Network Error",
+                                    title: "Ошибка соединения",
                                     message: message,
                                     buttonText: "Попробовать еще раз",
                                     completion: { [weak self] in
@@ -186,7 +189,8 @@ final class MovieQuizViewController: UIViewController,
     
     private func showAPIError(errorMessage: String) {
         hideLoadingIndicator()
-        let alertModel = AlertModel(title: "Ошибка загрузки",
+        let alertModel = AlertModel(id: "API Error",
+                                    title: "Ошибка загрузки",
                                     message:
                                     """
                                     Произошла ошибка загрузки данных:
@@ -206,7 +210,8 @@ final class MovieQuizViewController: UIViewController,
     
     private func showImageLoadError(message: String) {
         hideLoadingIndicator()
-        let alertModel = AlertModel(title: "Ошибка загрузки изображения",
+        let alertModel = AlertModel(id: "Image Error",
+                                    title: "Ошибка загрузки изображения",
                                     message: "Неудалось загрузить изображение, попробуйте еще раз",
                                     buttonText: "Попробовать еще раз",
                                     completion: { [weak self] in
