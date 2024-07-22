@@ -31,17 +31,19 @@ final class MovieQuizViewController: UIViewController,
         showLoadingIndicator()
         questionFactory?.loadData()
         
+        presenter.viewController = self
+        
         alertPresenter = AlertPresenter(delegate: self)
     }
     
     // MARK: - IB Actions
     @IBAction private func yesButtonClicked(_ sender: UIButton) {
-        guard let currentQuestion else { return }
-        showAnswerResult(isCorrect: currentQuestion.correctAnswer == true)
+        presenter.currentQuestion = currentQuestion
+        presenter.yesButtonClicked()
     }
     @IBAction private func noButtonClicked(_ sender: UIButton) {
-        guard let currentQuestion else { return }
-        showAnswerResult(isCorrect: currentQuestion.correctAnswer == false)
+        presenter.currentQuestion = currentQuestion
+        presenter.noButtonClicked()
     }
     
     // MARK: - QuestionFactoryDelegate
@@ -87,7 +89,7 @@ final class MovieQuizViewController: UIViewController,
         counterLable.text = step.questionNumber
     }
     
-    private func showAnswerResult(isCorrect: Bool){
+    func showAnswerResult(isCorrect: Bool){
         imageView.layer.masksToBounds = true
         imageView.layer.borderWidth = 8
         imageView.layer.borderColor = isCorrect ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor

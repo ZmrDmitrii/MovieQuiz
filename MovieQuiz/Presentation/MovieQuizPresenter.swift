@@ -5,6 +5,18 @@ final class MovieQuizPresenter {
     let questionAmount = 10
     private var currentQuestionIndex = 0
     
+    var currentQuestion: QuizQuestion?
+    weak var viewController: MovieQuizViewController?
+    
+    func yesButtonClicked() {
+        guard let currentQuestion else { return }
+        viewController?.showAnswerResult(isCorrect: currentQuestion.correctAnswer == true)
+    }
+    func noButtonClicked() {
+        guard let currentQuestion else { return }
+        viewController?.showAnswerResult(isCorrect: currentQuestion.correctAnswer == false)
+    }
+    
     func isLastQuestion() -> Bool {
         currentQuestionIndex == questionAmount - 1
     }
