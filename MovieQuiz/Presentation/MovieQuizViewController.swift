@@ -17,7 +17,6 @@ final class MovieQuizViewController: UIViewController,
     
     
     private var questionFactory: QuestionFactoryProtocol?
-    private var currentQuestion: QuizQuestion?
     private var alertPresenter: AlertPresenter?
     private var statisticService: StatisticServiceProtocol = StatisticService()
     private let presenter = MovieQuizPresenter()
@@ -38,25 +37,15 @@ final class MovieQuizViewController: UIViewController,
     
     // MARK: - IB Actions
     @IBAction private func yesButtonClicked(_ sender: UIButton) {
-        presenter.currentQuestion = currentQuestion
         presenter.yesButtonClicked()
     }
     @IBAction private func noButtonClicked(_ sender: UIButton) {
-        presenter.currentQuestion = currentQuestion
         presenter.noButtonClicked()
     }
     
     // MARK: - QuestionFactoryDelegate
     func didReceiveNextQuestion(question: QuizQuestion?) {
-        guard let question else { return }
-        
-        currentQuestion = question
-        let viewModel = presenter.convert(model: question)
-        
-        DispatchQueue.main.async { [weak self] in
-            self?.hideLoadingIndicator()
-            self?.show(quiz: viewModel)
-        }
+        presenter.didReceiveNextQuestion(question: question)
     }
     
     func didLoadDataFromServer() {
@@ -83,7 +72,7 @@ final class MovieQuizViewController: UIViewController,
     
     // MARK: - Private Methods
     
-    private func show(quiz step: QuizStepViewModel) {
+    func show(quiz step: QuizStepViewModel) {
         imageView.image = step.image
         textLable.text = step.question
         counterLable.text = step.questionNumber
@@ -104,7 +93,10 @@ final class MovieQuizViewController: UIViewController,
            // Код, вызываемый через 1 секунду
             guard let self else { return }
             self.imageView.layer.borderWidth = 0
-            self.showNextQuestionOrResults()
+            self.presenter.correctAnswers = correctAnswers
+            self.presenter.statisticService = statisticService
+            self.presenter.questionFactory = questionFactory
+            self.presenter.showNextQuestionOrResults()
             self.changeStateButton(isEnabled: true)
         }
     }
@@ -138,7 +130,7 @@ final class MovieQuizViewController: UIViewController,
     }
     
     //Теперь функция show отвечает за создание AlertModel из QuizResultViewModel и передачу этой модели в AlertPresenter
-    private func show(quiz result: QuizResultViewModel) {
+    func show(quiz result: QuizResultViewModel) {
         let alertModel = AlertModel(
             id: result.id,
             title: result.title,
@@ -158,11 +150,11 @@ final class MovieQuizViewController: UIViewController,
         yesButton.isEnabled = isEnabled
     }
     
-    private func showLoadingIndicator() {
+    func showLoadingIndicator() {
         activityIndicator.startAnimating()
     }
     
-    private func hideLoadingIndicator() {
+    func hideLoadingIndicator() {
         activityIndicator.stopAnimating()
     }
     
