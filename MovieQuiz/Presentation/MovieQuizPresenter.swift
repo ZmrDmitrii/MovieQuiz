@@ -1,18 +1,20 @@
 import UIKit
 
 final class MovieQuizPresenter: QuestionFactoryDelegate {
+    // MARK: - Public Properties
+    var currentQuestion: QuizQuestion?
+    
     // MARK: - Private Properties
     private let questionAmount = 10
     private var currentQuestionIndex = 0
     private var correctAnswers = 0
     
-    private var currentQuestion: QuizQuestion?
-    weak var viewController: MovieQuizViewController?
+    weak var viewController: MovieQuizViewControllerProtocol?
     private var statisticService: StatisticServiceProtocol = StatisticService()
     private var questionFactory: QuestionFactoryProtocol?
     
     // MARK: - Initializers
-    init(viewController: MovieQuizViewController? = nil) {
+    init(viewController: MovieQuizViewControllerProtocol? = nil) {
         self.viewController = viewController
         
         questionFactory = QuestionFactory(delegate: self, moviesLoader: MoviesLoader())
@@ -93,6 +95,15 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         viewController?.showError(alertModel: alertModel)
     }
     
+    // MARK: - Public Methods
+    func convert(model: QuizQuestion) -> QuizStepViewModel {
+        let result = QuizStepViewModel(
+            image: UIImage(data: model.image) ?? UIImage(),
+            question: model.text,
+            questionNumber: "\(currentQuestionIndex + 1)/\(questionAmount)")
+        return result
+    }
+    
     // MARK: - Private Methods
     private func isLastQuestion() -> Bool {
         currentQuestionIndex == questionAmount - 1
@@ -105,14 +116,6 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
     
     private func switchToNextQuestion() {
         currentQuestionIndex += 1
-    }
-    
-    private func convert(model: QuizQuestion) -> QuizStepViewModel {
-        let result = QuizStepViewModel(
-            image: UIImage(data: model.image) ?? UIImage(),
-            question: model.text,
-            questionNumber: "\(currentQuestionIndex + 1)/\(questionAmount)")
-        return result
     }
     
     private func didAnswer(isYes: Bool) {

@@ -1,7 +1,8 @@
 import UIKit
 
 final class MovieQuizViewController: UIViewController,
-                                     AlertPresenterDelegate {
+                                     AlertPresenterDelegate,
+                                     MovieQuizViewControllerProtocol {
     // MARK: - IB Outlets
     @IBOutlet private weak var imageView: UIImageView!
     @IBOutlet private weak var textLable: UILabel!
@@ -44,7 +45,11 @@ final class MovieQuizViewController: UIViewController,
         counterLable.text = step.questionNumber
     }
     
-    func highlightImageBorder(isCorrect: Bool){
+    func show(alertModel resultAlert: AlertModel) {
+        alertPresenter?.showAlert(model: resultAlert)
+    }
+    
+    func highlightImageBorder(isCorrect: Bool) {
         imageView.layer.masksToBounds = true
         imageView.layer.borderWidth = 8
         imageView.layer.borderColor = isCorrect ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
@@ -54,10 +59,6 @@ final class MovieQuizViewController: UIViewController,
         }
     }
     
-    func show(alertModel resultAlert: AlertModel) {
-        alertPresenter?.showAlert(model: resultAlert)
-    }
-        
     func changeStateButton(isEnabled: Bool) {
         noButton.isEnabled = isEnabled
         yesButton.isEnabled = isEnabled
@@ -66,7 +67,7 @@ final class MovieQuizViewController: UIViewController,
     func showLoadingIndicator() {
         activityIndicator.startAnimating()
     }
-    
+
     func hideLoadingIndicator() {
         activityIndicator.stopAnimating()
     }
