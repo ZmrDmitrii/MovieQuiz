@@ -11,7 +11,7 @@ protocol QuestionFactoryDelegate: AnyObject {
     func didFailToLoadData(with error: Error)
     
     //метод сообщает, что пришел пустой массив фильмов => ошибка загрузки
-    func didLoadEmptyArrayOfMovies(with errorMessage: String)
+    func didFailToLoadArrayOfMovies(with errorMessage: String)
     
     //метод сообщает, что не получилось загрузить изображение
     func didFailToLoadImage(with error: Error)

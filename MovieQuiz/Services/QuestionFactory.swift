@@ -30,7 +30,7 @@ extension QuestionFactory: QuestionFactoryProtocol {
                     if self.movies.isEmpty || mostPopularMovies.errorMessage != "" {
                         
                         //загрузка удалась, но мы получили пустой массив -> вызываем метод с показом ошибки
-                        self.delegate?.didLoadEmptyArrayOfMovies(with: mostPopularMovies.errorMessage)
+                        self.delegate?.didFailToLoadArrayOfMovies(with: mostPopularMovies.errorMessage)
                         
                     } else {
                         
@@ -97,48 +97,3 @@ extension QuestionFactory: QuestionFactoryProtocol {
         }
     }
 }
-
-/*
-private let questions: [QuizQuestion] = [
-    QuizQuestion(
-        image: "The Godfather",
-        text: "Рейтинг этого фильма\n больше чем 6?",
-        correctAnswer: true),
-    QuizQuestion(
-        image: "The Dark Knight",
-        text: "Рейтинг этого фильма\n больше чем 6?",
-        correctAnswer: true),
-    QuizQuestion(
-        image: "Kill Bill",
-        text: "Рейтинг этого фильма\n больше чем 6?",
-        correctAnswer: true),
-    QuizQuestion(
-        image: "The Avengers",
-        text: "Рейтинг этого фильма\n больше чем 6?",
-        correctAnswer: true),
-    QuizQuestion(
-        image: "Deadpool",
-        text: "Рейтинг этого фильма\n больше чем 6?",
-        correctAnswer: true),
-    QuizQuestion(
-        image: "The Green Knight",
-        text: "Рейтинг этого фильма\n больше чем 6?",
-        correctAnswer: true),
-    QuizQuestion(
-        image: "Old",
-        text: "Рейтинг этого фильма\n больше чем 6?",
-        correctAnswer: false),
-    QuizQuestion(
-        image: "The Ice Age Adventures of Buck Wild",
-        text: "Рейтинг этого фильма\n больше чем 6?",
-        correctAnswer: false),
-    QuizQuestion(
-        image: "Tesla",
-        text: "Рейтинг этого фильма\n больше чем 6?",
-        correctAnswer: false),
-    QuizQuestion(
-        image: "Vivarium",
-        text: "Рейтинг этого фильма\n больше чем 6?",
-        correctAnswer: false)
-    ]
- */

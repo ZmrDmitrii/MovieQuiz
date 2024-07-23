@@ -54,18 +54,8 @@ final class MovieQuizViewController: UIViewController,
         }
     }
     
-    func show(quiz result: QuizResultViewModel) {
-        let alertModel = AlertModel(
-            id: result.id,
-            title: result.title,
-            message: result.text,
-            buttonText: result.buttonText,
-            completion: { [weak self] in
-                guard let self else { return }
-                self.presenter.restartGame()
-                self.presenter.questionFactory?.requestNextQuestion()
-            })
-        alertPresenter?.showAlert(model: alertModel)
+    func show(alertModel resultAlert: AlertModel) {
+        alertPresenter?.showAlert(model: resultAlert)
     }
         
     func changeStateButton(isEnabled: Bool) {
@@ -81,53 +71,8 @@ final class MovieQuizViewController: UIViewController,
         activityIndicator.stopAnimating()
     }
     
-    func showNetworkError(message: String) {
+    func showError(alertModel: AlertModel) {
         hideLoadingIndicator()
-        let alertModel = AlertModel(id: "Network Error",
-                                    title: "Ошибка соединения",
-                                    message: message,
-                                    buttonText: "Попробовать еще раз",
-                                    completion: { [weak self] in
-            guard let self else { return }
-            self.presenter.restartGame()
-            self.presenter.correctAnswers = 0
-            showLoadingIndicator()
-            self.presenter.questionFactory?.loadData()
-        })
-        alertPresenter?.showAlert(model: alertModel)
-    }
-    
-    func showAPIError(errorMessage: String) {
-        hideLoadingIndicator()
-        let alertModel = AlertModel(id: "API Error",
-                                    title: "Ошибка загрузки",
-                                    message:
-                                    """
-                                    Произошла ошибка загрузки данных:
-                                    \(errorMessage)
-                                    Попробуйте еще раз.
-                                    """,
-                                    buttonText: "Попробовать еще раз",
-                                    completion: { [weak self] in
-            guard let self else { return }
-            self.presenter.restartGame()
-            self.presenter.correctAnswers = 0
-            showLoadingIndicator()
-            self.presenter.questionFactory?.loadData()
-        })
-        alertPresenter?.showAlert(model: alertModel)
-    }
-    
-    func showImageLoadError(message: String) {
-        hideLoadingIndicator()
-        let alertModel = AlertModel(id: "Image Error",
-                                    title: "Ошибка загрузки изображения",
-                                    message: "Неудалось загрузить изображение, попробуйте еще раз",
-                                    buttonText: "Попробовать еще раз",
-                                    completion: { [weak self] in
-            guard let self else { return }
-            self.presenter.questionFactory?.requestNextQuestion()
-        })
         alertPresenter?.showAlert(model: alertModel)
     }
 }
