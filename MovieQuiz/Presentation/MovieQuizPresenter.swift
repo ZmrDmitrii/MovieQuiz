@@ -2,6 +2,43 @@ import UIKit
 
 final class MovieQuizPresenter: QuestionFactoryDelegate {
     
+   
+    // MARK: - Properties
+    
+    let questionAmount = 10
+    private var currentQuestionIndex = 0
+    
+    var correctAnswers = 0
+    var statisticService: StatisticServiceProtocol = StatisticService()
+    var questionFactory: QuestionFactoryProtocol?
+    
+    var currentQuestion: QuizQuestion?
+    weak var viewController: MovieQuizViewController?
+    
+    // MARK: - Initializers
+    
+    init(viewController: MovieQuizViewController? = nil) {
+        self.viewController = viewController
+        
+        questionFactory = QuestionFactory(delegate: self, moviesLoader: MoviesLoader())
+        questionFactory?.loadData()
+        viewController?.showLoadingIndicator()
+    }
+    
+    // MARK: - QuestionFactoryDelegate
+    
+    func didReceiveNextQuestion(question: QuizQuestion?) {
+        guard let question else { return }
+        
+        currentQuestion = question
+        let viewModel = convert(model: question)
+        
+        DispatchQueue.main.async { [weak self] in
+            self?.viewController?.hideLoadingIndicator()
+            self?.viewController?.show(quiz: viewModel)
+        }
+    }
+    
     func didLoadDataFromServer() {
         viewController?.hideLoadingIndicator()
         questionFactory?.requestNextQuestion()
@@ -19,23 +56,14 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         viewController?.showImageLoadError(message: error.localizedDescription)
     }
     
+    // MARK: - Methods
     
-    let questionAmount = 10
-    private var currentQuestionIndex = 0
-    
-    var correctAnswers = 0
-    var statisticService: StatisticServiceProtocol = StatisticService()
-    var questionFactory: QuestionFactoryProtocol?
-    
-    var currentQuestion: QuizQuestion?
-    weak var viewController: MovieQuizViewController?
-    
-    init(viewController: MovieQuizViewController? = nil) {
-        self.viewController = viewController
-        
-        questionFactory = QuestionFactory(delegate: self, moviesLoader: MoviesLoader())
-        questionFactory?.loadData()
-        viewController?.showLoadingIndicator()
+    func convert(model: QuizQuestion) -> QuizStepViewModel {
+        let result = QuizStepViewModel(
+            image: UIImage(data: model.image) ?? UIImage(),
+            question: model.text,
+            questionNumber: "\(currentQuestionIndex + 1)/\(questionAmount)")
+        return result
     }
     
     func yesButtonClicked() {
@@ -58,40 +86,18 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         currentQuestionIndex += 1
     }
     
-    // MARK: - QuestionFactoryDelegate
-    
-    func convert(model: QuizQuestion) -> QuizStepViewModel {
-        let result = QuizStepViewModel(
-            image: UIImage(data: model.image) ?? UIImage(),
-            question: model.text,
-            questionNumber: "\(currentQuestionIndex + 1)/\(questionAmount)")
-        return result
-    }
-    
-    func didReceiveNextQuestion(question: QuizQuestion?) {
-        guard let question else { return }
-        
-        currentQuestion = question
-        let viewModel = convert(model: question)
-        
-        DispatchQueue.main.async { [weak self] in
-            self?.viewController?.hideLoadingIndicator()
-            self?.viewController?.show(quiz: viewModel)
-        }
-    }
-    
-    func showNextQuestionOrResults() {
+    func proceedToNextQuestionOrResults() {
         if self.isLastQuestion() {
             //Result
             //Сохраняю текущий результат игры
-            statisticService.store(GameResult(correct: correctAnswers, total: self.questionAmount, date: Date()))
+            statisticService.store(GameResult(correct: correctAnswers, total: questionAmount, date: Date()))
             
             //Создаю модель результата QuizResultViewModel
             let resultModel = QuizResultViewModel(id: "Result",
                                                   title: "Этот раунд окончен!",
-                                                  text: (correctAnswers == self.questionAmount ?
-                                                         "Поздравляем, результат: \(self.questionAmount) из \(self.questionAmount)!\n" :
-                                                            "Ваш результат: \(correctAnswers) из \(self.questionAmount)\n") +
+                                                  text: (correctAnswers == questionAmount ?
+                                                         "Поздравляем, результат: \(questionAmount) из \(questionAmount)!\n" :
+                                                            "Ваш результат: \(correctAnswers) из \(questionAmount)\n") +
                                                   """
                                                   Колличество сыграных квизов: \(statisticService.gamesCount)
                                                   Рекорд: \(statisticService.bestGame.correct)/\(statisticService.bestGame.total) (\(statisticService.bestGame.date.dateTimeString))
@@ -102,9 +108,20 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
             viewController?.show(quiz: resultModel)
         } else {
             //Next Question
-            self.switchToNextQuestion()
+            switchToNextQuestion()
             viewController?.showLoadingIndicator()
             questionFactory?.requestNextQuestion()
+        }
+    }
+    
+    func proceedWithAnswer(isCorrect: Bool){
+        viewController?.highlightImageBorder(isCorrect: isCorrect)
+        viewController?.changeStateButton(isEnabled: false)
+              
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+            guard let self else { return }
+            self.proceedToNextQuestionOrResults()
+            self.viewController?.changeStateButton(isEnabled: true)
         }
     }
     
@@ -112,6 +129,6 @@ final class MovieQuizPresenter: QuestionFactoryDelegate {
         guard let currentQuestion else { return }
         let isCorrect = currentQuestion.correctAnswer == isYes
         correctAnswers += isCorrect ? 1 : 0
-        viewController?.showAnswerResult(isCorrect: isCorrect)
+        proceedWithAnswer(isCorrect: isCorrect)
     }
 }

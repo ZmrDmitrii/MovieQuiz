@@ -12,7 +12,6 @@ final class MovieQuizViewController: UIViewController,
     
     // MARK: - Private Properties
     private var alertPresenter: AlertPresenter?
-    private var statisticService: StatisticServiceProtocol = StatisticService()
     private let presenter = MovieQuizPresenter()
     
     // MARK: - View Life Cycles
@@ -32,11 +31,6 @@ final class MovieQuizViewController: UIViewController,
         presenter.noButtonClicked()
     }
     
-    // MARK: - QuestionFactoryDelegate
-    func didReceiveNextQuestion(question: QuizQuestion?) {
-        presenter.didReceiveNextQuestion(question: question)
-    }
-    
     // MARK: - AlertPresenterDelegate
     func presentAlert(_ alert: UIAlertController) {
         present(alert, animated: true, completion: nil)
@@ -50,54 +44,16 @@ final class MovieQuizViewController: UIViewController,
         counterLable.text = step.questionNumber
     }
     
-    func showAnswerResult(isCorrect: Bool){
+    func highlightImageBorder(isCorrect: Bool){
         imageView.layer.masksToBounds = true
         imageView.layer.borderWidth = 8
         imageView.layer.borderColor = isCorrect ? UIColor.ypGreen.cgColor : UIColor.ypRed.cgColor
-        changeStateButton(isEnabled: false)
-        
-        // Разобраться: выполнение кода через заданный промежуток времени.
-        // Запускаем задачу через 1 секунду c помощью диспетчера задач.
-        // используем weak ссылку на self; разворачиваем опционал self
+
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
-           // Код, вызываемый через 1 секунду
-            guard let self else { return }
-            self.imageView.layer.borderWidth = 0
-            self.presenter.statisticService = statisticService
-            self.presenter.showNextQuestionOrResults()
-            self.changeStateButton(isEnabled: true)
+            self?.imageView.layer.borderWidth = 0
         }
     }
-
-//    private func showNextQuestionOrResults() {
-//        if presenter.isLastQuestion() {
-//            //Result
-//            //Сохраняю текущий результат игры
-//            statisticService.store(GameResult(correct: correctAnswers, total: presenter.questionAmount, date: Date()))
-//            
-//            //Создаю модель результата QuizResultViewModel
-//            let resultModel = QuizResultViewModel(id: "Result",
-//                                                  title: "Этот раунд окончен!",
-//                                                  text: (correctAnswers == presenter.questionAmount ?
-//                                                         "Поздравляем, результат: \(presenter.questionAmount) из \(presenter.questionAmount)!\n" :
-//                                                            "Ваш результат: \(correctAnswers) из \(presenter.questionAmount)\n") +
-//                                                  """
-//                                                  Колличество сыграных квизов: \(statisticService.gamesCount)
-//                                                  Рекорд: \(statisticService.bestGame.correct)/\(statisticService.bestGame.total) (\(statisticService.bestGame.date.dateTimeString))
-//                                                  Средняя точность: \(String(format: "%.2f", statisticService.totalAccuracy))%
-//                                                  """,
-//                                                  buttonText: "Сыграть еще раз")
-//            //Передаю созданную модель в функцию show
-//            show(quiz: resultModel)
-//        } else {
-//            //Next Question
-//            presenter.switchToNextQuestion()
-//            showLoadingIndicator()
-//            questionFactory?.requestNextQuestion()
-//        }
-//    }
     
-    //Теперь функция show отвечает за создание AlertModel из QuizResultViewModel и передачу этой модели в AlertPresenter
     func show(quiz result: QuizResultViewModel) {
         let alertModel = AlertModel(
             id: result.id,
@@ -112,7 +68,7 @@ final class MovieQuizViewController: UIViewController,
         alertPresenter?.showAlert(model: alertModel)
     }
         
-    private func changeStateButton(isEnabled: Bool) {
+    func changeStateButton(isEnabled: Bool) {
         noButton.isEnabled = isEnabled
         yesButton.isEnabled = isEnabled
     }
