@@ -1,6 +1,24 @@
 import UIKit
 
-final class MovieQuizPresenter {
+final class MovieQuizPresenter: QuestionFactoryDelegate {
+    
+    func didLoadDataFromServer() {
+        viewController?.hideLoadingIndicator()
+        questionFactory?.requestNextQuestion()
+    }
+    
+    func didFailToLoadData(with error: any Error) {
+        viewController?.showNetworkError(message: error.localizedDescription)
+    }
+    
+    func didLoadEmptyArrayOfMovies(with errorMessage: String) {
+        viewController?.showAPIError(errorMessage: errorMessage)
+    }
+    
+    func didFailToLoadImage(with error: any Error) {
+        viewController?.showImageLoadError(message: error.localizedDescription)
+    }
+    
     
     let questionAmount = 10
     private var currentQuestionIndex = 0
@@ -11,6 +29,14 @@ final class MovieQuizPresenter {
     
     var currentQuestion: QuizQuestion?
     weak var viewController: MovieQuizViewController?
+    
+    init(viewController: MovieQuizViewController? = nil) {
+        self.viewController = viewController
+        
+        questionFactory = QuestionFactory(delegate: self, moviesLoader: MoviesLoader())
+        questionFactory?.loadData()
+        viewController?.showLoadingIndicator()
+    }
     
     func yesButtonClicked() {
         didAnswer(isYes: true)
@@ -23,13 +49,16 @@ final class MovieQuizPresenter {
         currentQuestionIndex == questionAmount - 1
     }
     
-    func resetQuestionIndex() {
+    func restartGame() {
         currentQuestionIndex = 0
+        correctAnswers = 0
     }
     
     func switchToNextQuestion() {
         currentQuestionIndex += 1
     }
+    
+    // MARK: - QuestionFactoryDelegate
     
     func convert(model: QuizQuestion) -> QuizStepViewModel {
         let result = QuizStepViewModel(
@@ -81,9 +110,8 @@ final class MovieQuizPresenter {
     
     private func didAnswer(isYes: Bool) {
         guard let currentQuestion else { return }
-        viewController?.showAnswerResult(isCorrect: currentQuestion.correctAnswer == isYes)
+        let isCorrect = currentQuestion.correctAnswer == isYes
+        correctAnswers += isCorrect ? 1 : 0
+        viewController?.showAnswerResult(isCorrect: isCorrect)
     }
-    
-    
-    
 }
